@@ -21,10 +21,14 @@ Explore Creative Projects
 {projects?.map((project:any)=>(
 
 <ProjectCard
-key={project.id}
-id={project.id}
-title={project.title}
-image={project.image_url}
+  key={project.id}
+  id={project.id}
+  title={project.title || "Untitled Project"}
+  image={project.image_url || "/placeholder.png"}
+  description={project.description || "No description yet"}
+  creator={project.creator_id || "unknown"}
+  likeCount={project.likes || 0}  // if likes column exists
+  isLiked={false}                 // default false
 />
 
 ))}

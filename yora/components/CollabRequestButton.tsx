@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { supabase } from "@/libs/supabase"
+import { supabase } from "../libs/supabase"
 
 export default function CollabRequestButton({
   opportunityId,
