@@ -1,3 +1,5 @@
+"use client"
+
 import { supabase } from "@/libs/supabase"
 import ProjectCard from "@/components/ProjectCard"
 import AICollaborators from "@/components/AICollaborators"

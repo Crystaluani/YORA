@@ -1,36 +1,36 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { supabase } from "@/libs/supabase"
 
-export default async function ProjectPage({ params }: any) {
+export default function ProjectPage({ params }: { params: { id: string } }) {
+  const id = params.id
+  const [project, setProject] = useState<any>(null)
 
-const { data: project } = await supabase
-.from("projects")
-.select("*")
-.eq("id", params.id)
-.single()
+  useEffect(() => {
+    fetchProject()
+  }, [])
 
-return (
+  const fetchProject = async () => {
+    const { data } = await supabase
+      .from("projects")
+      .select("*")
+      .eq("id", id)
+      .single()
+    setProject(data)
+  }
 
-<div className="p-10 max-w-4xl mx-auto">
-
-<img
-src={project?.media_url}
-className="w-full rounded-lg mb-6"
-/>
-
-<h1 className="text-3xl font-bold mb-4">
-{project?.title}
-</h1>
-
-<p className="text-gray-600 mb-6">
-{project?.description}
-</p>
-
-<p className="text-sm">
-Tools used: {project?.tools}
-</p>
-
-</div>
-
-)
-
+  return (
+    <div className="p-6">
+      {project ? (
+        <>
+          <h1 className="font-bold text-2xl mb-4">{project.title}</h1>
+          <img src={project.image_url} className="mb-4 rounded-lg" />
+          <p>{project.description}</p>
+        </>
+      ) : (
+        <p>Loading...</p>
+      )}
+    </div>
+  )
 }

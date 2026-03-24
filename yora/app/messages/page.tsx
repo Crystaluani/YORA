@@ -1,3 +1,5 @@
+"use client"
+
 import { supabase } from "@/libs/supabase"
 import Link from "next/link"
 

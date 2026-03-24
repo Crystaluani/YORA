@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/libs/supabase"
+import { useParams } from "next/navigation"
 
-export default function ChatPage({ params }: { params: { id: string } }) {
+export default function ChatPage() {
 
-  const id = params.id
+  const params = useParams()
+  const id = params?.id as string
 
   const [messages, setMessages] = useState<any[]>([])
   const [text, setText] = useState("")
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  // ✅ Get user first
+  // ✅ Get current user
   const getUser = async () => {
     const { data } = await supabase.auth.getUser()
     setUser(data.user)
@@ -21,7 +23,7 @@ export default function ChatPage({ params }: { params: { id: string } }) {
 
   // ✅ Fetch messages
   const fetchMessages = async (currentUser: any) => {
-    if (!currentUser) return
+    if (!currentUser || !id) return
 
     const { data } = await supabase
       .from("messages")
@@ -36,7 +38,7 @@ export default function ChatPage({ params }: { params: { id: string } }) {
     setLoading(false)
   }
 
-  // ✅ Real-time (FILTERED)
+  // ✅ Real-time subscription
   const subscribeToMessages = (currentUser: any) => {
 
     const channel = supabase
@@ -51,12 +53,11 @@ export default function ChatPage({ params }: { params: { id: string } }) {
         (payload) => {
           const msg = payload.new
 
-          // ✅ Only add relevant messages
           if (
             (msg.sender_id === currentUser.id && msg.receiver_id === id) ||
             (msg.sender_id === id && msg.receiver_id === currentUser.id)
           ) {
-            setMessages((prev) => [...prev, msg])
+            setMessages((prev: any[]) => [...prev, msg])
           }
         }
       )
@@ -65,7 +66,10 @@ export default function ChatPage({ params }: { params: { id: string } }) {
     return channel
   }
 
+  // ✅ Initialize chat
   useEffect(() => {
+    if (!id) return
+
     let channel: any
 
     const init = async () => {
@@ -78,17 +82,17 @@ export default function ChatPage({ params }: { params: { id: string } }) {
 
     init()
 
-    // ✅ cleanup
     return () => {
       if (channel) {
         supabase.removeChannel(channel)
       }
     }
+
   }, [id])
 
   // ✅ Send message
   const sendMessage = async () => {
-    if (!text.trim() || !user) return
+    if (!text.trim() || !user || !id) return
 
     await supabase.from("messages").insert({
       sender_id: user.id,
