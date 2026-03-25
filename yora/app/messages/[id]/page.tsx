@@ -1,126 +1,118 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/libs/supabase"
+import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
+import { supabase } from "@/libs/supabase"
 
-export default function ChatPage() {
+type Message = {
+  id: string
+  sender_id: string
+  receiver_id: string
+  content: string
+  created_at: string
+}
 
+export default function MessagesPage() {
   const params = useParams()
-  const id = params?.id as string
+  const chatId = params?.id as string | undefined
 
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState("")
   const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const chatRef = useRef<HTMLDivElement>(null)
 
-  // ✅ Get current user
-  const getUser = async () => {
-    const { data } = await supabase.auth.getUser()
-    setUser(data.user)
-    return data.user
-  }
+  // ✅ get user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      setUser(data.user)
+    }
+    getUser()
+  }, [])
 
-  // ✅ Fetch messages
-  const fetchMessages = async (currentUser: any) => {
-    if (!currentUser || !id) return
+  // ✅ fetch messages
+  useEffect(() => {
+    if (!user || !chatId) return
 
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .or(
-        `and(sender_id.eq.${currentUser.id},receiver_id.eq.${id}),
-         and(sender_id.eq.${id},receiver_id.eq.${currentUser.id})`
-      )
-      .order("created_at", { ascending: true })
+    const fetchMessages = async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .or(
+          `and(sender_id.eq.${user.id},receiver_id.eq.${chatId}),and(sender_id.eq.${chatId},receiver_id.eq.${user.id})`
+        )
+        .order("created_at", { ascending: true })
 
-    setMessages(data || [])
-    setLoading(false)
-  }
+      setMessages((data || []) as Message[])
+    }
 
-  // ✅ Real-time subscription
-  const subscribeToMessages = (currentUser: any) => {
+    fetchMessages()
+  }, [user, chatId])
+
+  // ✅ realtime
+  useEffect(() => {
+    if (!user || !chatId) return
 
     const channel = supabase
-      .channel(`chat-${id}`)
+      .channel(`chat-${chatId}`)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages"
-        },
+        { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
-          const msg = payload.new
+          const msg = payload.new as Message
 
           if (
-            (msg.sender_id === currentUser.id && msg.receiver_id === id) ||
-            (msg.sender_id === id && msg.receiver_id === currentUser.id)
+            (msg.sender_id === user.id && msg.receiver_id === chatId) ||
+            (msg.sender_id === chatId && msg.receiver_id === user.id)
           ) {
-            setMessages((prev: any[]) => [...prev, msg])
+            setMessages((prev) => [...prev, msg])
           }
         }
       )
       .subscribe()
 
-    return channel
-  }
-
-  // ✅ Initialize chat
-  useEffect(() => {
-    if (!id) return
-
-    let channel: any
-
-    const init = async () => {
-      const currentUser = await getUser()
-      if (!currentUser) return
-
-      await fetchMessages(currentUser)
-      channel = subscribeToMessages(currentUser)
-    }
-
-    init()
-
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel)
-      }
+      supabase.removeChannel(channel)
+    }
+  }, [user, chatId])
+
+  // ✅ scroll
+  useEffect(() => {
+    chatRef.current?.scrollTo(0, chatRef.current.scrollHeight)
+  }, [messages])
+
+  // ✅ send
+  const sendMessage = async () => {
+    if (!text.trim() || !user || !chatId) return
+
+    const newMsg: Message = {
+      id: crypto.randomUUID(),
+      sender_id: user.id,
+      receiver_id: chatId,
+      content: text,
+      created_at: new Date().toISOString()
     }
 
-  }, [id])
-
-  // ✅ Send message
-  const sendMessage = async () => {
-    if (!text.trim() || !user || !id) return
+    setMessages((prev) => [...prev, newMsg])
+    setText("")
 
     await supabase.from("messages").insert({
       sender_id: user.id,
-      receiver_id: id,
+      receiver_id: chatId,
       content: text
     })
-
-    setText("")
   }
+
+  if (!chatId) return <p>Invalid chat</p>
 
   return (
     <div className="max-w-2xl mx-auto p-10">
+      <h1 className="text-xl font-bold mb-6">Chat</h1>
 
-      <h1 className="text-xl font-bold mb-6">
-        Chat
-      </h1>
-
-      {/* Messages */}
-      <div className="space-y-3 min-h-[300px]">
-
-        {loading && (
-          <p className="text-gray-400">Loading...</p>
-        )}
-
-        {!loading && messages.length === 0 && (
-          <p className="text-gray-400">No messages yet</p>
-        )}
-
+      <div
+        ref={chatRef}
+        className="space-y-3 min-h-[300px] max-h-[500px] overflow-y-auto"
+      >
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -133,28 +125,21 @@ export default function ChatPage() {
             {msg.content}
           </div>
         ))}
-
       </div>
 
-      {/* Input */}
       <div className="mt-6 flex gap-2">
-
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
           className="flex-1 border p-2 rounded"
         />
-
         <button
           onClick={sendMessage}
-          className="bg-black text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+          className="bg-black text-white px-4 py-2 rounded"
         >
           Send
         </button>
-
       </div>
-
     </div>
   )
 }

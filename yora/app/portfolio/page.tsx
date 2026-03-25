@@ -1,7 +1,10 @@
 export default function Portfolio() {
   return (
     <div className="min-h-screen p-10">
-      <h1 className="text-4xl font-bold mb-6">Creative Portfolio</h1>
+
+      <h1 className="text-4xl font-bold mb-6">
+        Creative Portfolio
+      </h1>
 
       <div className="grid grid-cols-3 gap-6">
 
@@ -21,6 +24,7 @@ export default function Portfolio() {
         </div>
 
       </div>
+
     </div>
   )
 }

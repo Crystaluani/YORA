@@ -1,6 +1,8 @@
 import { supabase } from "@/libs/supabase"
 import ProjectCard from "@/components/ProjectCard"
 import CreateProjectWithAI from "@/components/CreateProjectWithAI"
+import AIProjectGenerator from "@/components/AIProjectGenerator"
+
 
 export default async function Feed() {
 
@@ -48,6 +50,7 @@ export default async function Feed() {
         {/* 🤖 AI CREATION */}
         <div className="bg-white p-6 rounded-2xl shadow">
           <CreateProjectWithAI />
+          
         </div>
 
         {/* 🧱 FEED */}
