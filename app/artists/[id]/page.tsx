@@ -1,10 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { supabase } from "@/libs/supabase"
 import AudioPlayer from "@/components/AudioPlayer"
 
-export default function ArtistProfilePage({ params }: { params: { id: string } }) {
+export default function ArtistProfilePage() {
+
+  const params = useParams()
+  const id = params?.id as string
 
   const [artist, setArtist] = useState<any>(null)
   const [tracks, setTracks] = useState<any[]>([])
@@ -12,37 +16,60 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
   const [showBooking, setShowBooking] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
   const [form, setForm] = useState({
     requester_name: "", requester_email: "", event_date: "",
     event_location: "", event_type: "", budget: "", message: ""
   })
 
   useEffect(() => {
+    if (!id) return
     const load = async () => {
-      const { data: artistData } = await supabase.from("profiles").select("*").eq("id", params.id).single()
-      if (!artistData) return
+      setPageLoading(true)
+
+      const { data: artistData, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (error || !artistData) {
+        setNotFound(true)
+        setPageLoading(false)
+        return
+      }
+
       setArtist(artistData)
 
       const { data: trackData } = await supabase
-        .from("tracks").select("*").eq("creator_id", params.id).order("created_at", { ascending: false })
+        .from("tracks")
+        .select("*")
+        .eq("creator_id", id)
+        .order("created_at", { ascending: false })
+
       setTracks(trackData || [])
 
       if (trackData && trackData.length > 0) {
         const { count } = await supabase
-          .from("track_likes").select("*", { count: "exact", head: true })
+          .from("track_likes")
+          .select("*", { count: "exact", head: true })
           .in("track_id", trackData.map((t: any) => t.id))
         setLikeCount(count || 0)
       }
+
+      setPageLoading(false)
     }
     load()
-  }, [params.id])
+  }, [id])
 
   const handleBooking = async () => {
     if (!form.requester_name || !form.requester_email || !form.event_date || !form.event_location || !form.event_type) {
       alert("Please fill in all required fields"); return
     }
     setLoading(true)
-    const { error } = await supabase.from("booking_requests").insert({ artist_id: params.id, ...form })
+    const { error } = await supabase.from("booking_requests").insert({ artist_id: id, ...form })
     if (!error) {
       await supabase.from("notifications").insert({
         user_id: artist.id, type: "booking",
@@ -54,9 +81,23 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
     setLoading(false)
   }
 
-  if (!artist) return (
+  if (pageLoading) return (
     <div style={{ background: "#080808", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ color: "#444", fontFamily: "'DM Sans',sans-serif" }}>Loading...</p>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ width: 32, height: 32, border: "2px solid #1f1f1f", borderTopColor: "#d4af37", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
+        <p style={{ color: "#444", fontFamily: "'DM Sans',sans-serif", fontSize: 14 }}>Loading profile...</p>
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
+
+  if (notFound) return (
+    <div style={{ background: "#080808", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ color: "#d4af37", fontFamily: "'Syne',sans-serif", fontSize: 48, fontWeight: 800, margin: "0 0 12px" }}>404</p>
+        <p style={{ color: "#555", fontFamily: "'DM Sans',sans-serif", fontSize: 16 }}>Artist not found</p>
+        <a href="/artists" style={{ color: "#d4af37", fontFamily: "'DM Sans',sans-serif", fontSize: 14, display: "block", marginTop: 16 }}>← Browse artists</a>
+      </div>
     </div>
   )
 
@@ -77,6 +118,7 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
         .ap-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #4ade80; padding: 4px 12px; border-radius: 999px; font-size: 12px; }
         .ap-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: blink 2s infinite; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .genre-tag { font-size: 11px; color: #d4af37; border: 1px solid rgba(212,175,55,0.3); padding: 3px 10px; border-radius: 999px; }
         .divider { border: none; border-top: 1px solid #151515; margin: 0; }
         .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -86,7 +128,7 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
         .modal-label { display: block; font-size: 11px; color: #555; margin-bottom: 5px; letter-spacing: 0.08em; text-transform: uppercase; }
         .modal-submit { width: 100%; background: #d4af37; color: #000; font-weight: 700; font-family: 'DM Sans',sans-serif; font-size: 15px; padding: 14px; border-radius: 12px; border: none; cursor: pointer; transition: opacity 0.2s; }
         .modal-submit:hover { opacity: 0.85; }
-        .modal-cancel { width: 100%; background: transparent; border: 1px solid #222; color: #555; font-family: 'DM Sans',sans-serif; font-size: 14px; padding: 12px; border-radius: 12px; cursor: pointer; transition: border-color 0.2s; margin-top: 10px; }
+        .modal-cancel { width: 100%; background: transparent; border: 1px solid #222; color: #555; font-family: 'DM Sans',sans-serif; font-size: 14px; padding: 12px; border-radius: 12px; cursor: pointer; margin-top: 10px; }
         .modal-cancel:hover { border-color: #444; }
       `}</style>
 
@@ -160,23 +202,19 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
                 {tracks.map((track: any) => (
                   <div key={track.id} className="ap-track">
                     <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px" }}>
-                      {/* Cover */}
                       <img
                         src={track.image_url || "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200"}
                         alt={track.title}
-                        style={{ width: 56, height: 56, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
+                        style={{ width: 52, height: 52, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
                       />
-                      {/* Info */}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontWeight: 600, fontSize: 15, margin: "0 0 2px", color: "#fff" }}>{track.title}</p>
-                        <p style={{ fontSize: 12, color: "#555", margin: 0, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                        <p style={{ fontWeight: 600, fontSize: 15, margin: 0, color: "#fff" }}>{track.title}</p>
+                        <p style={{ fontSize: 12, color: "#555", margin: "2px 0 0", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                           {track.genre || "Music"}
                         </p>
                       </div>
                       {track.genre && <span className="genre-tag">{track.genre}</span>}
                     </div>
-
-                    {/* Audio player — only shown if audio_url exists */}
                     {track.audio_url && (
                       <div style={{ padding: "0 16px 14px" }}>
                         <AudioPlayer url={track.audio_url} title={track.title} />
@@ -187,7 +225,6 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
               </div>
             )}
           </div>
-
         </div>
       </div>
 
@@ -208,7 +245,6 @@ export default function ArtistProfilePage({ params }: { params: { id: string } }
               <>
                 <h3 className="ap-syne" style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Book {artist.name}</h3>
                 <p style={{ color: "#555", fontSize: 13, marginBottom: 24 }}>Fill in your details and {artist.name} will get back to you.</p>
-
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     <div>
