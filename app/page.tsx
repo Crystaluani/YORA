@@ -255,7 +255,7 @@ export default async function Home() {
               Make sure it's a public video. Muted autoplay works best with ambient concert footage.
             */}
             <iframe
-              src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&mute=1&loop=1&playlist=jfKfPfyJRdk&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
+              src="https://www.youtube.com/embed/6xd4oIP6Uws?autoplay=1&mute=1&controls=0&loop=1&playlist=6xd4oIP6Uws"
               allow="autoplay; encrypted-media"
               allowFullScreen
             />
