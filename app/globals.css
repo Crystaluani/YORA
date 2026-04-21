@@ -15,3 +15,155 @@
 h1,h2,h3 {
   letter-spacing: -0.02em;
 }
+
+/* Add these to the END of your existing globals.css */
+
+/* ── GLOBAL MOBILE RESETS ── */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent horizontal scroll on all pages */
+.ap, .db, .ut, .ps, .ep, .al, .sp, .feed, .auth {
+  overflow-x: hidden;
+}
+
+/* ── MOBILE: Artist profile ── */
+@media (max-width: 600px) {
+  /* Artist profile header stacks vertically */
+  .ap > div > div:first-child {
+    flex-direction: column;
+    align-items: flex-start !important;
+    margin-top: -30px !important;
+  }
+
+  /* Stats grid on mobile */
+  .ap-stat {
+    padding: 12px 10px !important;
+  }
+  .ap-stat-num {
+    font-size: 20px !important;
+  }
+
+  /* Booking modal full width on mobile */
+  .modal-box {
+    padding: 24px 16px !important;
+    border-radius: 16px !important;
+    margin: 0 8px;
+  }
+  .modal-box > div > div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── MOBILE: Dashboard ── */
+@media (max-width: 600px) {
+  .db {
+    padding: 28px 16px 60px !important;
+  }
+  .bcard {
+    padding: 16px !important;
+  }
+  .bcard > div:first-child {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+/* ── MOBILE: Upload track ── */
+@media (max-width: 600px) {
+  .ut {
+    padding: 32px 16px 60px !important;
+  }
+  .ut-card {
+    padding: 24px 16px !important;
+  }
+  .genre-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* ── MOBILE: Profile setup ── */
+@media (max-width: 600px) {
+  .ps {
+    padding: 32px 16px 60px !important;
+  }
+  .ps-card {
+    padding: 24px 16px !important;
+  }
+  .genre-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* ── MOBILE: Edit profile ── */
+@media (max-width: 600px) {
+  .ep {
+    padding: 32px 16px 60px !important;
+  }
+  .ep-card {
+    padding: 24px 16px !important;
+  }
+}
+
+/* ── MOBILE: Auth pages ── */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 28px 20px !important;
+  }
+}
+
+/* ── MOBILE: Feed ── */
+@media (max-width: 600px) {
+  .feed {
+    padding: 28px 16px 60px !important;
+  }
+}
+
+/* ── MOBILE: Search page ── */
+@media (max-width: 600px) {
+  .sp {
+    padding: 28px 16px 60px !important;
+  }
+}
+
+/* ── MOBILE: Artists list ── */
+@media (max-width: 600px) {
+  .al {
+    padding: 32px 16px 60px !important;
+  }
+}
+
+/* ── TOUCH IMPROVEMENTS ── */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Minimum tap target size for mobile */
+@media (max-width: 768px) {
+  button, .btn-gold, .btn-ghost, .nav-btn-gold, .mobile-link {
+    min-height: 44px;
+  }
+}
+
+/* ── IMAGES ── */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #080808; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #333; }
