@@ -1,22 +1,24 @@
 import "./globals.css"
 import Navbar from "@/components/Navbar"
 
+export const metadata = {
+  title: "YORA — Artist Discovery Platform",
+  description: "Emerging artists get heard, discovered, and booked.",
+}
+
 export default function RootLayout({
-children,
+  children,
 }: {
-children: React.ReactNode
+  children: React.ReactNode
 }) {
-return (
-<html lang="en">
-<body className="bg-gray-50 text-gray-900">
-
-<Navbar />
-
-<main className="max-w-6xl mx-auto px-6 py-6">
-{children}
-</main>
-
-</body>
-</html>
-)
+  return (
+    <html lang="en">
+      <body style={{ background: "#080808", color: "#fff", margin: 0, padding: 0 }}>
+        <Navbar />
+        <main>
+          {children}
+        </main>
+      </body>
+    </html>
+  )
 }

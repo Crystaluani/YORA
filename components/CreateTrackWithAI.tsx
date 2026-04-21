@@ -4,14 +4,13 @@ import { useState } from "react"
 import AIProjectGenerator from "./AIProjectGenerator"
 import { supabase } from "@/libs/supabase"
 
-export default function CreateProjectWithAI() {
+export default function CreateTrackWithAI() {
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [image, setImage] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // 🔥 AI fills form
   const handleAI = (data: any) => {
     setTitle(data.title)
     setDescription(data.description)
@@ -19,15 +18,13 @@ export default function CreateProjectWithAI() {
 
   const handleSubmit = async () => {
     if (!title || !description) return
-
     setLoading(true)
 
     const { data: userData } = await supabase.auth.getUser()
     const user = userData.user
-
     if (!user) return
 
-    await supabase.from("projects").insert({
+    await supabase.from("tracks").insert({
       title,
       description,
       image_url: image,
@@ -42,33 +39,29 @@ export default function CreateProjectWithAI() {
 
   return (
     <div className="space-y-4">
-
-      {/* 🔥 AI */}
       <AIProjectGenerator onGenerate={handleAI} />
 
-      {/* 🧾 FORM */}
       <div className="bg-white p-4 rounded-xl shadow space-y-3">
-
-        <h2 className="font-semibold">Create Project</h2>
+        <h2 className="font-semibold">Post a Track</h2>
 
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Project title"
+          placeholder="Track title"
           className="w-full border p-2 rounded"
         />
 
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Project description"
+          placeholder="Track description"
           className="w-full border p-2 rounded"
         />
 
         <input
           value={image}
           onChange={(e) => setImage(e.target.value)}
-          placeholder="Image URL"
+          placeholder="Cover image URL"
           className="w-full border p-2 rounded"
         />
 
@@ -76,11 +69,9 @@ export default function CreateProjectWithAI() {
           onClick={handleSubmit}
           className="bg-black text-white px-4 py-2 rounded"
         >
-          {loading ? "Posting..." : "Post Project"}
+          {loading ? "Posting..." : "Post Track"}
         </button>
-
       </div>
-
     </div>
   )
 }

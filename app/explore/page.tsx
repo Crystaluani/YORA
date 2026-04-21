@@ -1,5 +1,5 @@
 import { supabase } from "@/libs/supabase"
-import ProjectCard from "@/components/ProjectCard"
+import TrackCard from "@/components/TrackCard"
 
 export default async function ExplorePage() {
 
@@ -20,13 +20,13 @@ Explore Creative Projects
 
 {projects?.map((project:any)=>(
 
-<ProjectCard
+<TrackCard
   key={project.id}
   id={project.id}
   title={project.title || "Untitled Project"}
   image={project.image_url || "/placeholder.png"}
   description={project.description || "No description yet"}
-  creator={project.creator_id || "unknown"}
+  artist={project.creator_id || "unknown"}
   likeCount={project.likes || 0}  // if likes column exists
   isLiked={false}                 // default false
 />
