@@ -212,7 +212,17 @@ export default function Navbar() {
 
       <nav className="nav">
         <div className="nav-inner">
-          <Link href="/" className="nav-logo">YOR<span>A</span></Link>
+<Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+  <svg width="120" height="32" viewBox="0 0 200 40" fill="none">
+    <rect x="0"  y="12" width="5" height="14" rx="2.5" fill="#d4af37" opacity="0.35"/>
+    <rect x="7"  y="6"  width="5" height="20" rx="2.5" fill="#d4af37" opacity="0.6"/>
+    <rect x="14" y="2"  width="5" height="24" rx="2.5" fill="#d4af37"/>
+    <rect x="21" y="6"  width="5" height="20" rx="2.5" fill="#d4af37" opacity="0.6"/>
+    <rect x="28" y="12" width="5" height="14" rx="2.5" fill="#d4af37" opacity="0.35"/>
+    <rect x="40" y="2"  width="0.5" height="28" rx="0" fill="#2a2a2a"/>
+    <text x="48" y="28" fontFamily="'Syne', serif" fontWeight="800" fontSize="26" fill="#ffffff" letterSpacing="-0.5">YORA</text>
+  </svg>
+</Link>
 
           {/* Desktop */}
           <div className="nav-links">
