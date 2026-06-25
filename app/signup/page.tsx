@@ -60,7 +60,7 @@ export default function SignupPage() {
               Join <span style={{ color: "#d4af37" }}>YORA</span>
             </h1>
             <p style={{ color: "#555", fontSize: 14, margin: 0 }}>
-              Create your artist profile and get discovered
+              Create your profile and get discovered
             </p>
           </div>
 

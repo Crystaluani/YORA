@@ -55,11 +55,11 @@ export default async function Feed() {
                 Latest
               </p>
               <h1 className="feed-syne" style={{ fontSize: 30, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>
-                Discover Music
+                Discover creative talent
               </h1>
             </div>
             <Link href="/upload-track" className="feed-upload-btn">
-              + Upload Track
+              + Upload project
             </Link>
           </div>
 
@@ -68,13 +68,13 @@ export default async function Feed() {
             <div className="empty-state">
               <p style={{ fontSize: 40, marginBottom: 16 }}>🎵</p>
               <p style={{ fontSize: 18, fontWeight: 600, color: "#fff", marginBottom: 8 }}>
-                No tracks yet
+                No projects yet
               </p>
               <p style={{ fontSize: 14, color: "#444", marginBottom: 28 }}>
-                Be the first to share your music with the world
+                Be the first to share your talent with the world
               </p>
               <Link href="/upload-track" className="feed-upload-btn">
-                Upload the first track
+                Upload the first project
               </Link>
             </div>
           ) : (

@@ -131,10 +131,10 @@ export default function UploadTrackPage() {
 
           <div style={{ textAlign: "center", marginBottom: 36 }}>
             <h1 className="ut-syne" style={{ fontSize: 30, fontWeight: 800, margin: "0 0 8px", letterSpacing: "-0.02em" }}>
-              Upload a Track
+              Upload a porject
             </h1>
             <p style={{ color: "#555", fontSize: 14, margin: 0 }}>
-              Share your music with the world
+              Share your work with the world
             </p>
           </div>
 

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { supabase } from "@/libs/supabase"
 import Link from "next/link"
 
-const GENRES = ["All", "Afrobeats", "Hip-Hop", "R&B", "Amapiano", "Gospel", "Pop", "Jazz", "Drill", "Highlife", "Reggae", "Soul", "Other"]
+const GENRES = ["All", "Musical artists", "Spoken word artists", "Painter", "DJs", "Dancers", "Live Band", "Jazz", "Drill", "Highlife", "Reggae", "Soul", "Other"]
 
 export default function SearchPage() {
 
@@ -98,7 +98,7 @@ export default function SearchPage() {
           <div style={{ marginBottom: 32 }}>
             <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#d4af37", margin: "0 0 10px" }}>Find talent</p>
             <h1 className="sp-syne" style={{ fontSize: "clamp(26px,5vw,34px)", fontWeight: 800, margin: "0 0 24px", letterSpacing: "-0.02em" }}>
-              Search Artists
+              Search Talent
             </h1>
 
             {/* Search bar */}

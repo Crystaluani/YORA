@@ -19,16 +19,11 @@ export default function Dashboard() {
       setUser(user)
 
       const { count } = await supabase
-        .from("tracks")
-        .select("*", { count: "exact", head: true })
-        .eq("creator_id", user.id)
+        .from("tracks").select("*", { count: "exact", head: true }).eq("creator_id", user.id)
       setTrackCount(count || 0)
 
       const { data: bookingData } = await supabase
-        .from("booking_requests")
-        .select("*")
-        .eq("artist_id", user.id)
-        .order("created_at", { ascending: false })
+        .from("booking_requests").select("*").eq("artist_id", user.id).order("created_at", { ascending: false })
       setBookings(bookingData || [])
     }
     load()
@@ -36,27 +31,24 @@ export default function Dashboard() {
 
   const updateStatus = async (id: string, status: string) => {
     setUpdating(id)
-    const { error } = await supabase
-      .from("booking_requests")
-      .update({ status })
-      .eq("id", id)
-    if (!error) {
-      setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b))
-    }
+    const { error } = await supabase.from("booking_requests").update({ status }).eq("id", id)
+    if (!error) setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b))
     setUpdating(null)
   }
 
   const pending  = bookings.filter(b => b.status === "pending")
   const accepted = bookings.filter(b => b.status === "accepted")
+  const paidBookings = bookings.filter(b => b.payment_status === "paid")
 
-  const statusBg:   Record<string, string> = { pending: "rgba(212,175,55,0.12)", accepted: "rgba(34,197,94,0.1)",  declined: "rgba(239,68,68,0.08)" }
-  const statusColor: Record<string, string> = { pending: "#d4af37",              accepted: "#4ade80",              declined: "#f87171" }
+  const statusBg:    Record<string, string> = { pending: "rgba(212,175,55,0.12)", accepted: "rgba(34,197,94,0.1)", declined: "rgba(239,68,68,0.08)" }
+  const statusColor: Record<string, string> = { pending: "#d4af37", accepted: "#4ade80", declined: "#f87171" }
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
-        .db { background: #080808; min-height: 100vh; color: #fff; font-family: 'DM Sans', sans-serif; padding: 48px 24px 80px; }
+        * { box-sizing: border-box; }
+        .db { background: #080808; min-height: 100vh; color: #fff; font-family: 'DM Sans', sans-serif; padding: 48px 20px 80px; }
         .db-syne { font-family: 'Syne', sans-serif; }
         .db-stat { background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; padding: 20px 22px; }
         .db-stat-num { font-size: 30px; font-weight: 800; font-family: 'Syne', sans-serif; color: #d4af37; margin: 0 0 4px; }
@@ -64,11 +56,13 @@ export default function Dashboard() {
         .db-tab { background: transparent; border: none; color: #555; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 9px 18px; border-radius: 999px; cursor: pointer; transition: all 0.2s; }
         .db-tab.active { background: #1a1a1a; color: #fff; }
         .bcard { background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 16px; padding: 20px 22px; }
+        .bcard.paid-border { border-color: rgba(212,175,55,0.3); }
         .bstatus { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 11px; border-radius: 999px; letter-spacing: 0.06em; text-transform: uppercase; }
+        .paid-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); color: #d4af37; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .unpaid-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); border: 1px solid #222; color: #555; padding: 3px 10px; border-radius: 999px; font-size: 11px; }
         .btn-accept { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #4ade80; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
         .btn-accept:hover { background: rgba(34,197,94,0.18); }
-        .btn-decline { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #f87171; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
-        .btn-decline:hover { background: rgba(239,68,68,0.14); }
+        .btn-decline { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #f87171; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
         .btn-gold { display: inline-block; background: #d4af37; color: #000; font-weight: 600; font-family: 'DM Sans',sans-serif; font-size: 14px; padding: 10px 22px; border-radius: 999px; text-decoration: none; transition: opacity 0.2s; }
         .btn-gold:hover { opacity: 0.85; }
         .btn-ghost { display: inline-block; border: 1px solid #222; color: #777; font-family: 'DM Sans',sans-serif; font-size: 14px; padding: 10px 22px; border-radius: 999px; text-decoration: none; transition: all 0.2s; }
@@ -77,6 +71,7 @@ export default function Dashboard() {
         .qa-card:hover { border-color: #2a2a2a; }
         .divider { border: none; border-top: 1px solid #111; margin: 32px 0; }
         .empty { border: 1px dashed #1a1a1a; border-radius: 14px; padding: 48px 24px; text-align: center; color: #333; }
+        @media (max-width: 600px) { .db { padding: 28px 16px 60px; } }
       `}</style>
 
       <div className="db">
@@ -89,7 +84,7 @@ export default function Dashboard() {
               <p style={{ color: "#444", fontSize: 13, margin: 0 }}>{user?.email}</p>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <Link href="/upload-track" className="btn-ghost">Upload Track</Link>
+              <Link href="/upload-track" className="btn-ghost">Upload Work</Link>
               <Link href={`/artists/${user?.id}`} className="btn-gold">View Profile</Link>
             </div>
           </div>
@@ -97,10 +92,10 @@ export default function Dashboard() {
           {/* STATS */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))", gap: 10, marginBottom: 36 }}>
             {[
-              { num: trackCount,       label: "Tracks" },
-              { num: pending.length,   label: "Pending Bookings" },
-              { num: accepted.length,  label: "Confirmed" },
-              { num: bookings.length,  label: "Total Requests" },
+              { num: trackCount,          label: "Works Uploaded" },
+              { num: pending.length,      label: "Pending Bookings" },
+              { num: accepted.length,     label: "Confirmed" },
+              { num: paidBookings.length, label: "Paid Requests" },
             ].map((s, i) => (
               <div key={i} className="db-stat">
                 <p className="db-stat-num">{s.num}</p>
@@ -113,7 +108,7 @@ export default function Dashboard() {
           <div style={{ display: "flex", gap: 4, marginBottom: 28, background: "#0a0a0a", padding: 4, borderRadius: 999, width: "fit-content", border: "1px solid #111" }}>
             <button className={`db-tab${activeTab === "overview" ? " active" : ""}`} onClick={() => setActiveTab("overview")}>Overview</button>
             <button className={`db-tab${activeTab === "bookings" ? " active" : ""}`} onClick={() => setActiveTab("bookings")}>
-              Booking Requests{pending.length > 0 ? ` (${pending.length})` : ""}
+              Bookings{pending.length > 0 ? ` (${pending.length})` : ""}
             </button>
           </div>
 
@@ -123,10 +118,10 @@ export default function Dashboard() {
               <h2 className="db-syne" style={{ fontSize: 17, fontWeight: 700, marginBottom: 14 }}>Quick Actions</h2>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px,1fr))", gap: 10 }}>
                 {[
-                  { label: "Upload a Track",      desc: "Add new music to your profile",    href: "/upload-track" },
-                  { label: "Edit Profile",         desc: "Update bio, genre and pricing",    href: "/edit-profile" },
-                  { label: "View Public Profile",  desc: "See how bookers see you",          href: `/artists/${user?.id}` },
-                  { label: "Browse Opportunities", desc: "Find gigs looking for artists",    href: "/opportunities" },
+                  { label: "Upload Work",          desc: "Add new work to your profile",    href: "/upload-track" },
+                  { label: "Edit Profile",          desc: "Update bio, field and pricing",   href: "/edit-profile" },
+                  { label: "View Public Profile",   desc: "See how clients see you",         href: `/artists/${user?.id}` },
+                  { label: "Browse Opportunities",  desc: "Find gigs looking for creatives", href: "/opportunities" },
                 ].map((item, i) => (
                   <Link key={i} href={item.href} className="qa-card">
                     <p style={{ fontWeight: 600, fontSize: 14, margin: "0 0 3px", color: "#fff" }}>{item.label}</p>
@@ -146,9 +141,15 @@ export default function Dashboard() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {pending.slice(0, 2).map(b => (
-                      <div key={b.id} className="bcard" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                      <div key={b.id} className={`bcard${b.payment_status === "paid" ? " paid-border" : ""}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                         <div>
-                          <p style={{ fontWeight: 600, fontSize: 15, margin: "0 0 2px" }}>{b.requester_name}</p>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                            <p style={{ fontWeight: 600, fontSize: 15, margin: 0 }}>{b.requester_name}</p>
+                            {b.payment_status === "paid"
+                              ? <span className="paid-badge">₦{(b.deposit_amount || 0).toLocaleString()} paid</span>
+                              : <span className="unpaid-badge">No deposit</span>
+                            }
+                          </div>
                           <p style={{ fontSize: 12, color: "#555", margin: 0 }}>{b.event_type} · {b.event_location} · {b.event_date}</p>
                         </div>
                         <div style={{ display: "flex", gap: 8 }}>
@@ -169,19 +170,23 @@ export default function Dashboard() {
               {bookings.length === 0 ? (
                 <div className="empty">
                   <p style={{ fontSize: 16, marginBottom: 8 }}>No booking requests yet</p>
-                  <p style={{ fontSize: 13 }}>Share your profile link to start getting booked</p>
+                  <p style={{ fontSize: 13 }}>Share your profile to start getting booked</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {bookings.map(b => (
-                    <div key={b.id} className="bcard">
+                    <div key={b.id} className={`bcard${b.payment_status === "paid" ? " paid-border" : ""}`}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
                         <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 3 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3, flexWrap: "wrap" }}>
                             <p style={{ fontWeight: 600, fontSize: 16, margin: 0 }}>{b.requester_name}</p>
                             <span className="bstatus" style={{ background: statusBg[b.status] || "#1a1a1a", color: statusColor[b.status] || "#666" }}>
                               {b.status}
                             </span>
+                            {b.payment_status === "paid"
+                              ? <span className="paid-badge">💰 ₦{(b.deposit_amount || 0).toLocaleString()} deposit paid</span>
+                              : <span className="unpaid-badge">No deposit</span>
+                            }
                           </div>
                           <p style={{ fontSize: 13, color: "#555", margin: 0 }}>{b.requester_email}</p>
                         </div>

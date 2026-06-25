@@ -2,7 +2,7 @@ import "./globals.css"
 import Navbar from "@/components/Navbar"
 
 export const metadata = {
-  title: "YORA — Artist Discovery Platform",
+  title: "YORA — Talent Discovery Platform",
   description: "Emerging artists get heard, discovered, and booked.",
 }
 
