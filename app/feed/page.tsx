@@ -55,7 +55,7 @@ export default async function Feed() {
                 Latest
               </p>
               <h1 className="feed-syne" style={{ fontSize: 30, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>
-                Discover creative talent
+                Discover work
               </h1>
             </div>
             <Link href="/upload-track" className="feed-upload-btn">

@@ -46,7 +46,7 @@ export default function ArtistsPage() {
               Discover
             </p>
             <h1 className="al-syne" style={{ fontSize: 36, fontWeight: 800, margin: "0 0 28px", letterSpacing: "-0.02em" }}>
-              Artists
+              Creatives
             </h1>
             <input
               className="al-search"

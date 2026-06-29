@@ -20,7 +20,7 @@ export default function SearchPage() {
 
   // Read genre from URL on load
   useEffect(() => {
-    const genreParam = searchParams.get("genre")
+const genreParam = searchParams.get("field") || searchParams.get("genre")
     if (genreParam && GENRES.includes(genreParam)) {
       setSelectedGenre(genreParam)
     }
@@ -98,7 +98,7 @@ export default function SearchPage() {
           <div style={{ marginBottom: 32 }}>
             <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#d4af37", margin: "0 0 10px" }}>Find talent</p>
             <h1 className="sp-syne" style={{ fontSize: "clamp(26px,5vw,34px)", fontWeight: 800, margin: "0 0 24px", letterSpacing: "-0.02em" }}>
-              Search Talent
+              Search Creatives
             </h1>
 
             {/* Search bar */}
