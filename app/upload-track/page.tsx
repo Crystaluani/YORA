@@ -26,9 +26,9 @@ export default function UploadTrackPage() {
   }
 
   const handleUpload = async () => {
-    if (!title)     return alert("Please add a track title")
-    if (!genre)     return alert("Please select a genre")
-    if (!audioFile) return alert("Please select an audio file")
+    if (!title)     return alert("Please add a project title")
+    if (!genre)     return alert("Please select a category")
+    if (!audioFile) return alert("Please select a file")
 
     setUploading(true)
 
@@ -40,15 +40,14 @@ export default function UploadTrackPage() {
     let audio_url = ""
     let image_url = ""
 
-    // 1. Upload audio
-    setUploadProgress("Uploading audio...")
+    setUploadProgress("Uploading file...")
     const audioPath = `${userId}/${timestamp}-${audioFile.name}`
     const { error: audioError } = await supabase.storage
       .from("tracks")
       .upload(audioPath, audioFile)
 
     if (audioError) {
-      alert(`Audio upload failed: ${audioError.message}`)
+      alert(`Upload failed: ${audioError.message}`)
       setUploading(false)
       setUploadProgress(null)
       return
@@ -57,7 +56,6 @@ export default function UploadTrackPage() {
     const { data: audioData } = supabase.storage.from("tracks").getPublicUrl(audioPath)
     audio_url = audioData.publicUrl
 
-    // 2. Upload cover image (optional)
     if (coverFile) {
       setUploadProgress("Uploading cover image...")
       const coverPath = `${userId}/${timestamp}-cover-${coverFile.name}`
@@ -71,8 +69,7 @@ export default function UploadTrackPage() {
       }
     }
 
-    // 3. Save to tracks table
-    setUploadProgress("Saving track...")
+    setUploadProgress("Saving project...")
     const { error: dbError } = await supabase
       .from("tracks")
       .insert({
@@ -85,7 +82,7 @@ export default function UploadTrackPage() {
       })
 
     if (dbError) {
-      alert(`Failed to save track: ${dbError.message}`)
+      alert(`Failed to save project: ${dbError.message}`)
       setUploading(false)
       setUploadProgress(null)
       return
@@ -131,10 +128,10 @@ export default function UploadTrackPage() {
 
           <div style={{ textAlign: "center", marginBottom: 36 }}>
             <h1 className="ut-syne" style={{ fontSize: 30, fontWeight: 800, margin: "0 0 8px", letterSpacing: "-0.02em" }}>
-              Upload a porject
+              Upload a Project
             </h1>
             <p style={{ color: "#555", fontSize: 14, margin: 0 }}>
-              Share your work with the world
+              Share your creative work and get discovered
             </p>
           </div>
 
@@ -166,18 +163,18 @@ export default function UploadTrackPage() {
 
               {/* Title */}
               <div>
-                <label className="ut-label">Track Title *</label>
+                <label className="ut-label">Project Title *</label>
                 <input
                   className="ut-input"
-                  placeholder="What's the track called?"
+                  placeholder="What's this project called?"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                 />
               </div>
 
-              {/* Genre */}
+              {/* Category */}
               <div>
-                <label className="ut-label">Genre *</label>
+                <label className="ut-label">Category *</label>
                 <div className="genre-grid">
                   {GENRES.map(g => (
                     <button
@@ -196,7 +193,7 @@ export default function UploadTrackPage() {
                 <label className="ut-label">Description (optional)</label>
                 <textarea
                   className="ut-input"
-                  placeholder="What's this track about? Any story behind it?"
+                  placeholder="What's this project about? Any story behind it?"
                   rows={3}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
@@ -204,9 +201,9 @@ export default function UploadTrackPage() {
                 />
               </div>
 
-              {/* Audio File */}
+              {/* File */}
               <div>
-                <label className="ut-label">Audio File *</label>
+                <label className="ut-label">Project File *</label>
                 {audioFile ? (
                   <div style={{ background: "#080808", border: "1px solid #1f1f1f", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
@@ -230,8 +227,8 @@ export default function UploadTrackPage() {
                 ) : (
                   <div className="drop-zone">
                     <input type="file" accept="audio/*" onChange={e => setAudioFile(e.target.files?.[0] || null)} />
-                    <p style={{ fontSize: 28, margin: "0 0 8px" }}>🎵</p>
-                    <p style={{ fontSize: 14, color: "#555", margin: "0 0 4px" }}>Click to upload audio</p>
+                    <p style={{ fontSize: 28, margin: "0 0 8px" }}>📁</p>
+                    <p style={{ fontSize: 14, color: "#555", margin: "0 0 4px" }}>Click to upload your work</p>
                     <p style={{ fontSize: 12, color: "#333", margin: 0 }}>MP3, WAV, FLAC, AAC supported</p>
                   </div>
                 )}
@@ -239,7 +236,7 @@ export default function UploadTrackPage() {
 
               {/* Upload button */}
               <button className="ut-submit" onClick={handleUpload} disabled={uploading}>
-                {uploading ? uploadProgress || "Uploading..." : "Upload Track"}
+                {uploading ? uploadProgress || "Uploading..." : "Upload Project"}
               </button>
 
               {uploading && (
