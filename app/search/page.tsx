@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/libs/supabase"
 import Link from "next/link"
 
-const GENRES = ["All", "Musical artists", "Spoken word artists", "Painter", "DJs", "Dancers", "Live Band", "Jazz", "Drill", "Highlife", "Reggae", "Soul", "Other"]
+const GENRES = ["All", "Singer / Songwriter", "DJ", "Live Band", "Music Producer", "Instrumentalist", "Rapper / MC", "Gospel Artist", "Afrobeats Artist", "Spoken Word Artist", "Other"]
 
-export default function SearchPage() {
+function SearchInner() {
 
   const searchParams = useSearchParams()
   const [query, setQuery] = useState("")
@@ -18,15 +18,13 @@ export default function SearchPage() {
   const [searched, setSearched] = useState(false)
   const [trackCounts, setTrackCounts] = useState<Record<string, number>>({})
 
-  // Read genre from URL on load
   useEffect(() => {
-const genreParam = searchParams.get("field") || searchParams.get("genre")
-    if (genreParam && GENRES.includes(genreParam)) {
-      setSelectedGenre(genreParam)
+    const fieldParam = searchParams.get("field") || searchParams.get("genre")
+    if (fieldParam && GENRES.includes(fieldParam)) {
+      setSelectedGenre(fieldParam)
     }
   }, [searchParams])
 
-  // Search whenever filters change
   useEffect(() => {
     const timer = setTimeout(() => { handleSearch() }, 300)
     return () => clearTimeout(timer)
@@ -60,6 +58,116 @@ const genreParam = searchParams.get("field") || searchParams.get("genre")
   }
 
   return (
+    <div className="sp">
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 32 }}>
+          <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#d4af37", margin: "0 0 10px" }}>Find talent</p>
+          <h1 className="sp-syne" style={{ fontSize: "clamp(26px,5vw,34px)", fontWeight: 800, margin: "0 0 24px", letterSpacing: "-0.02em" }}>
+            Search Creatives
+          </h1>
+
+          <div style={{ position: "relative", marginBottom: 14 }}>
+            <svg style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "#444", pointerEvents: "none" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              className="sp-search"
+              placeholder="Search by name, location, skills..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+            <div className="genres-wrap" style={{ flex: 1 }}>
+              {GENRES.map(g => (
+                <button key={g} className={`genre-pill${selectedGenre === g ? " sel" : ""}`} onClick={() => setSelectedGenre(g)}>
+                  {g}
+                </button>
+              ))}
+            </div>
+            <button className={`toggle-btn${availableOnly ? " active" : ""}`} onClick={() => setAvailableOnly(!availableOnly)}>
+              <span className="toggle-dot" />Available only
+            </button>
+          </div>
+        </div>
+
+        {/* Results count */}
+        <div style={{ marginBottom: 20, height: 24, display: "flex", alignItems: "center" }}>
+          {loading ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div className="spinner" />
+              <span style={{ fontSize: 13, color: "#444" }}>Searching...</span>
+            </div>
+          ) : searched && (
+            <p style={{ fontSize: 13, color: "#444", margin: 0 }}>
+              {artists.length === 0 ? "No creatives found" : `${artists.length} creative${artists.length === 1 ? "" : "s"} found${selectedGenre !== "All" ? ` in ${selectedGenre}` : ""}`}
+            </p>
+          )}
+        </div>
+
+        {/* Results */}
+        {!loading && artists.length === 0 && searched ? (
+          <div className="empty">
+            <p style={{ fontSize: 18, marginBottom: 8 }}>No creatives found</p>
+            <p style={{ fontSize: 13 }}>
+              {query || selectedGenre !== "All" ? "Try a different search or remove filters" : "No creatives yet"}
+            </p>
+          </div>
+        ) : (
+          <div className="results-grid">
+            {artists.map(artist => (
+              <Link key={artist.id} href={`/artists/${artist.id}`} className="artist-card">
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+                  <div className="av">
+                    {artist.avatar_url
+                      ? <img src={artist.avatar_url} alt={artist.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      : artist.name?.[0]?.toUpperCase() || "A"
+                    }
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontWeight: 600, fontSize: 15, margin: "0 0 2px", color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{artist.name}</p>
+                    <p style={{ fontSize: 12, color: "#555", margin: 0 }}>{artist.location || "Location not set"}</p>
+                  </div>
+                </div>
+
+                {artist.bio && (
+                  <p style={{ fontSize: 13, color: "#555", margin: "0 0 12px", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    {artist.bio}
+                  </p>
+                )}
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                  {(artist.genre || artist.creative_field) && <span className="genre-tag">{artist.genre || artist.creative_field}</span>}
+                  {artist.available !== false && <span className="avail-badge"><span className="avail-dot" />Available</span>}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #151515", paddingTop: 12 }}>
+                  <div style={{ display: "flex", gap: 14 }}>
+                    {trackCounts[artist.id] > 0 && (
+                      <span className="stat-chip">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                        {trackCounts[artist.id]} work{trackCounts[artist.id] !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                    {artist.price_range && <span className="stat-chip">From {artist.price_range}</span>}
+                  </div>
+                  <span style={{ fontSize: 12, color: "#d4af37", fontWeight: 500 }}>View →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -91,113 +199,13 @@ const genreParam = searchParams.get("field") || searchParams.get("genre")
         @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr; } }
       `}</style>
 
-      <div className="sp">
-        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-
-          {/* Header */}
-          <div style={{ marginBottom: 32 }}>
-            <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#d4af37", margin: "0 0 10px" }}>Find talent</p>
-            <h1 className="sp-syne" style={{ fontSize: "clamp(26px,5vw,34px)", fontWeight: 800, margin: "0 0 24px", letterSpacing: "-0.02em" }}>
-              Search Creatives
-            </h1>
-
-            {/* Search bar */}
-            <div style={{ position: "relative", marginBottom: 14 }}>
-              <svg style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "#444", pointerEvents: "none" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-              </svg>
-              <input
-                className="sp-search"
-                placeholder="Search by name, location, skills..."
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-              />
-            </div>
-
-            {/* Filters */}
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-              <div className="genres-wrap" style={{ flex: 1 }}>
-                {GENRES.map(g => (
-                  <button key={g} className={`genre-pill${selectedGenre === g ? " sel" : ""}`} onClick={() => setSelectedGenre(g)}>
-                    {g}
-                  </button>
-                ))}
-              </div>
-              <button className={`toggle-btn${availableOnly ? " active" : ""}`} onClick={() => setAvailableOnly(!availableOnly)}>
-                <span className="toggle-dot" />Available only
-              </button>
-            </div>
-          </div>
-
-          {/* Results count */}
-          <div style={{ marginBottom: 20, height: 24, display: "flex", alignItems: "center" }}>
-            {loading ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div className="spinner" />
-                <span style={{ fontSize: 13, color: "#444" }}>Searching...</span>
-              </div>
-            ) : searched && (
-              <p style={{ fontSize: 13, color: "#444", margin: 0 }}>
-                {artists.length === 0 ? "No artists found" : `${artists.length} artist${artists.length === 1 ? "" : "s"} found${selectedGenre !== "All" ? ` in ${selectedGenre}` : ""}`}
-              </p>
-            )}
-          </div>
-
-          {/* Results */}
-          {!loading && artists.length === 0 && searched ? (
-            <div className="empty">
-              <p style={{ fontSize: 18, marginBottom: 8 }}>No artists found</p>
-              <p style={{ fontSize: 13 }}>
-                {query || selectedGenre !== "All" ? "Try a different search or remove filters" : "No artists yet"}
-              </p>
-            </div>
-          ) : (
-            <div className="results-grid">
-              {artists.map(artist => (
-                <Link key={artist.id} href={`/artists/${artist.id}`} className="artist-card">
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-                    <div className="av">
-                      {artist.avatar_url
-                        ? <img src={artist.avatar_url} alt={artist.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        : artist.name?.[0]?.toUpperCase() || "A"
-                      }
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontWeight: 600, fontSize: 15, margin: "0 0 2px", color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{artist.name}</p>
-                      <p style={{ fontSize: 12, color: "#555", margin: 0 }}>{artist.location || "Location not set"}</p>
-                    </div>
-                  </div>
-
-                  {artist.bio && (
-                    <p style={{ fontSize: 13, color: "#555", margin: "0 0 12px", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                      {artist.bio}
-                    </p>
-                  )}
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-                    {(artist.genre || artist.creative_field) && <span className="genre-tag">{artist.genre || artist.creative_field}</span>}
-                    {artist.available !== false && <span className="avail-badge"><span className="avail-dot" />Available</span>}
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #151515", paddingTop: 12 }}>
-                    <div style={{ display: "flex", gap: 14 }}>
-                      {trackCounts[artist.id] > 0 && (
-                        <span className="stat-chip">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                          {trackCounts[artist.id]} track{trackCounts[artist.id] !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                      {artist.price_range && <span className="stat-chip">From {artist.price_range}</span>}
-                    </div>
-                    <span style={{ fontSize: 12, color: "#d4af37", fontWeight: 500 }}>View →</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-
+      <Suspense fallback={
+        <div style={{ background: "#080808", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 24, height: 24, border: "2px solid #1f1f1f", borderTopColor: "#d4af37", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
         </div>
-      </div>
+      }>
+        <SearchInner />
+      </Suspense>
     </>
   )
 }
